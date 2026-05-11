@@ -65,7 +65,7 @@ const PORT = Number(process.env.PORT) || 3000
 
 try {
   await app.ready()
-  httpServer.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`\n🦷 ODONT HUB API rodando em http://localhost:${PORT}`)
     console.log(`📡 Socket.io ativo`)
     console.log(`🌿 Ambiente: ${process.env.NODE_ENV}\n`)
