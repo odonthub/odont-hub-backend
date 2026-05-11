@@ -1,5 +1,5 @@
 // src/modules/auth/controller.js
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import { supabase } from '../../config/database.js'
 import { redis } from '../../config/redis.js'
 import { randomUUID } from 'crypto'
