@@ -1,8 +1,8 @@
 import { supabase } from '../../config/database.js'
 
 export default async function feedRoutes(fastify) {
-  // GET feed — público (sem autenticação)
-  fastify.get('/api/feed', async (request, reply) => {
+  // GET feed — público
+  fastify.get('/', async (request, reply) => {
     const { page = 1, limit = 10 } = request.query
     const offset = (page - 1) * limit
 
@@ -22,7 +22,7 @@ export default async function feedRoutes(fastify) {
   })
 
   // POST — criar post (autenticado)
-  fastify.post('/api/feed', {
+  fastify.post('/', {
     onRequest: [fastify.authenticate],
     handler: async (request, reply) => {
       const { content, specialty_tag, image_url } = request.body
@@ -40,7 +40,7 @@ export default async function feedRoutes(fastify) {
   })
 
   // POST like
-  fastify.post('/api/feed/:id/like', {
+  fastify.post('/:id/like', {
     onRequest: [fastify.authenticate],
     handler: async (request, reply) => {
       await supabase.from('post_likes').upsert({ post_id: request.params.id, user_id: request.user.id })
@@ -49,7 +49,7 @@ export default async function feedRoutes(fastify) {
   })
 
   // DELETE like
-  fastify.delete('/api/feed/:id/like', {
+  fastify.delete('/:id/like', {
     onRequest: [fastify.authenticate],
     handler: async (request, reply) => {
       await supabase.from('post_likes').delete().match({ post_id: request.params.id, user_id: request.user.id })
@@ -58,7 +58,7 @@ export default async function feedRoutes(fastify) {
   })
 
   // DELETE post
-  fastify.delete('/api/feed/:id', {
+  fastify.delete('/:id', {
     onRequest: [fastify.authenticate],
     handler: async (request, reply) => {
       await supabase.from('posts').delete().match({ id: request.params.id, user_id: request.user.id })
