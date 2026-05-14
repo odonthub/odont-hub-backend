@@ -4,21 +4,34 @@ export default async function feedRoutes(fastify) {
   // GET feed — público
   fastify.get('/', async (request, reply) => {
     const { page = 1, limit = 10 } = request.query
-    const offset = (page - 1) * limit
+    const offset = (Number(page) - 1) * Number(limit)
 
-    const { data, error } = await supabase
+    const { data: posts, error } = await supabase
       .from('posts')
-      .select(`
-        *,
-        author:users(id, name, specialty, cro, cro_uf),
-        likes_count:post_likes(count),
-        comments_count:post_comments(count)
-      `)
+      .select('*')
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+      .range(offset, offset + Number(limit) - 1)
 
-    if (error) throw new Error('Erro ao buscar posts.')
-    return data || []
+    if (error) return reply.status(500).send({ error: error.message })
+    if (!posts?.length) return []
+
+    // Busca autores separadamente
+    const userIds = [...new Set(posts.map(p => p.user_id))]
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, name, specialty, cro, cro_uf')
+      .in('id', userIds)
+
+    const usersMap = {}
+    users?.forEach(u => { usersMap[u.id] = u })
+
+    return posts.map(post => ({
+      ...post,
+      author: usersMap[post.user_id] || {},
+      likes_count: 0,
+      comments_count: 0,
+      liked_by_me: false,
+    }))
   })
 
   // POST — criar post (autenticado)
@@ -34,7 +47,7 @@ export default async function feedRoutes(fastify) {
         .select()
         .single()
 
-      if (error) throw new Error('Erro ao criar post.')
+      if (error) return reply.status(500).send({ error: error.message })
       return data
     }
   })
