@@ -1,7 +1,7 @@
 import { uploadImage } from '../../config/cloudinary.js'
 
 export default async function uploadsRoutes(fastify) {
-  fastify.post('/api/uploads/image', {
+  fastify.post('/image', {
     onRequest: [fastify.authenticate],
     handler: async (request, reply) => {
       const data = await request.file()
