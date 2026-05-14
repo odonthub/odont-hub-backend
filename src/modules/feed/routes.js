@@ -78,4 +78,21 @@ export default async function feedRoutes(fastify) {
       return { ok: true }
     }
   })
+  // PUT - editar post
+  fastify.put('/:id', {
+    onRequest: [fastify.authenticate],
+    handler: async (request, reply) => {
+      const { content } = request.body
+      if (!content || !content.trim()) return reply.status(400).send({ error: 'Conteudo obrigatorio.' })
+      const { data, error } = await supabase
+        .from('posts')
+        .update({ content: content.trim() })
+        .match({ id: request.params.id, user_id: request.user.id })
+        .select()
+        .single()
+      if (error) return reply.status(500).send({ error: error.message })
+      return data
+    }
+  })
+
 }
