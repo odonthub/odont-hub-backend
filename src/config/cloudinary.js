@@ -23,3 +23,4 @@ export async function uploadImage(buffer, folder = 'odont-hub') {
 }
 
 export default cloudinary
+// qui 14 mai 2026 22:35:09 -03
