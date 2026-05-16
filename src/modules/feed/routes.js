@@ -94,5 +94,47 @@ export default async function feedRoutes(fastify) {
       return data
     }
   })
+// GET comentários de um post
+  fastify.get('/:id/comments', async (request, reply) => {
+    const { data, error } = await supabase
+      .from('post_comments')
+      .select('*, author:users(id,name,specialty,cro,cro_uf)')
+      .eq('post_id', request.params.id)
+      .is('parent_id', null)
+      .order('created_at', { ascending: true })
+    if (error) return reply.status(500).send({ error: error.message })
+    return data || []
+  })
 
+  // POST comentário
+  fastify.post('/:id/comments', {
+    onRequest: [fastify.authenticate],
+    handler: async (request, reply) => {
+      const { content, parent_id } = request.body
+      if (!content?.trim()) return reply.status(400).send({ error: 'Comentário vazio.' })
+      const { data, error } = await supabase
+        .from('post_comments')
+        .insert({
+          post_id: request.params.id,
+          user_id: request.user.id,
+          content: content.trim(),
+          parent_id: parent_id || null,
+        })
+        .select('*, author:users(id,name,specialty,cro,cro_uf)')
+        .single()
+      if (error) return reply.status(500).send({ error: error.message })
+      return reply.status(201).send(data)
+    }
+  })
+
+  // DELETE comentário
+  fastify.delete('/:postId/comments/:commentId', {
+    onRequest: [fastify.authenticate],
+    handler: async (request, reply) => {
+      await supabase.from('post_comments')
+        .delete()
+        .match({ id: request.params.commentId, user_id: request.user.id })
+      return { ok: true }
+    }
+  })
 }
