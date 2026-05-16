@@ -3,8 +3,9 @@ import { getCourses, getCourse, createCourse, updateCourse, deleteCourse, enroll
 
 export default async function courseRoutes(app) {
   const auth = { preHandler: [app.authenticate] }
-  app.get('/',          auth, getCourses)
-  app.get('/:id',       auth, getCourse)
+
+  app.get('/',            getCourses)
+  app.get('/:id',         getCourse)
   app.post('/',         auth, createCourse)
   app.patch('/:id',     auth, updateCourse)
   app.delete('/:id',    auth, deleteCourse)
