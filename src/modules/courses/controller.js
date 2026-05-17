@@ -7,7 +7,7 @@ export async function getCourses(request, reply) {
   const offset = (page - 1) * 18
   let q = supabase
     .from('courses')
-    .select('*, instructor:users(id,name,avatar_url,cro)')
+    .select('id,user_id,title,description,specialty,modality,hours,price,city,state,start_date,cover_url,whatsapp,status,created_at, instructor:users(id,name,avatar_url,cro)')
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .range(offset, offset + 17)
