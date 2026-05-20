@@ -89,7 +89,7 @@ const PORT = Number(process.env.PORT) || 3000
 await app.listen({ port: PORT, host: "0.0.0.0" })
 
 const io = new SocketIO(app.server, {
-  cors: { origin: process.env.FRONTEND_URL || "https://odonthub.com.br", methods: ["GET", "POST"] }
+  cors: { origin: "*", methods: ["GET", "POST"] }
 })
 initSocket(io)
 console.log(`[ODONT HUB] API segura rodando na porta ${PORT} ✅`)
