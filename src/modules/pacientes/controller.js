@@ -3,6 +3,7 @@
 // Filtra TUDO por clinica_id do usuário autenticado (multi-clínica).
 
 import { supabase } from '../../config/database.js'
+import { ensureClinica, getUserId } from '../_shared/clinica.js'
 
 // Campos que o cliente pode enviar (whitelist) — protege contra mass-assignment
 const CAMPOS_GRAVAVEIS = [
@@ -51,39 +52,7 @@ function montarPayload(body) {
   return out
 }
 
-// Garante que o usuário tenha uma clínica. Cria automaticamente se for o
-// primeiro uso. Retorna sempre o clinica_id atual do usuário.
-async function ensureClinica(userId) {
-  if (!userId) {
-    throw new Error('Token sem userId. Faça logout e login novamente.')
-  }
-
-  const { data: u, error: e1 } = await supabase
-    .from('users').select('id,name,clinica_id').eq('id', userId).maybeSingle()
-
-  if (e1) {
-    // Erro de DB — provavelmente coluna clinica_id ainda não foi reconhecida
-    // pelo PostgREST (rodar NOTIFY pgrst, 'reload schema' no Supabase).
-    throw new Error('Erro ao consultar usuário: ' + (e1.message || e1.code || 'desconhecido'))
-  }
-  if (!u) {
-    throw new Error('Usuário do token (' + userId + ') não existe na tabela users. Verifique no Supabase.')
-  }
-
-  if (u.clinica_id) return u.clinica_id
-
-  const primeiro = (u.name || 'Dentista').split(' ')[0]
-  const { data: c, error: e2 } = await supabase
-    .from('clinicas').insert({ nome: 'Clínica de ' + primeiro, criado_por: userId })
-    .select().single()
-  if (e2) throw new Error('Erro ao criar clínica: ' + (e2.message || e2.code))
-
-  const { error: e3 } = await supabase
-    .from('users').update({ clinica_id: c.id }).eq('id', userId)
-  if (e3) throw new Error('Erro ao vincular clínica ao usuário: ' + (e3.message || e3.code))
-
-  return c.id
-}
+// ensureClinica vive em ../_shared/clinica.js (FASE 2A)
 
 // ══════════════════════════════════════════════════════════════════════════
 //  LISTA + BUSCA
@@ -91,7 +60,7 @@ async function ensureClinica(userId) {
 // ══════════════════════════════════════════════════════════════════════════
 export async function listar(request, reply) {
   try {
-    const clinica_id = await ensureClinica((request.user?.id || request.user?.sub))
+    const clinica_id = await ensureClinica(getUserId(request))
     const q = (request.query.q || '').toString().trim()
 
     let qb = supabase.from('pacientes')
@@ -125,7 +94,7 @@ export async function listar(request, reply) {
 // ══════════════════════════════════════════════════════════════════════════
 export async function detalhe(request, reply) {
   try {
-    const clinica_id = await ensureClinica((request.user?.id || request.user?.sub))
+    const clinica_id = await ensureClinica(getUserId(request))
     const { id } = request.params
 
     const { data, error } = await supabase
@@ -145,7 +114,7 @@ export async function detalhe(request, reply) {
 // ══════════════════════════════════════════════════════════════════════════
 export async function criar(request, reply) {
   try {
-    const clinica_id = await ensureClinica((request.user?.id || request.user?.sub))
+    const clinica_id = await ensureClinica(getUserId(request))
     const payload = montarPayload(request.body || {})
 
     if (!payload.nome_completo) {
@@ -157,7 +126,7 @@ export async function criar(request, reply) {
     if (v.valor) payload.cpf = v.valor
 
     payload.clinica_id = clinica_id
-    payload.criado_por = (request.user?.id || request.user?.sub)
+    payload.criado_por = getUserId(request)
 
     const { data, error } = await supabase
       .from('pacientes').insert(payload).select().single()
@@ -183,7 +152,7 @@ export async function criar(request, reply) {
 // ══════════════════════════════════════════════════════════════════════════
 export async function editar(request, reply) {
   try {
-    const clinica_id = await ensureClinica((request.user?.id || request.user?.sub))
+    const clinica_id = await ensureClinica(getUserId(request))
     const { id } = request.params
     const payload = montarPayload(request.body || {})
 
@@ -230,7 +199,7 @@ export async function editar(request, reply) {
 // ══════════════════════════════════════════════════════════════════════════
 export async function inativar(request, reply) {
   try {
-    const clinica_id = await ensureClinica((request.user?.id || request.user?.sub))
+    const clinica_id = await ensureClinica(getUserId(request))
     const { id } = request.params
 
     const { data, error } = await supabase
