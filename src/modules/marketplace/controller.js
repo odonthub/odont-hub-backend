@@ -36,7 +36,7 @@ export async function getListing(request, reply) {
 }
 
 export async function createListing(request, reply) {
-  const { title, description, price, category, condition, city, state, image_urls = [] } = request.body
+  const { title, description, price, category, condition, city, state, whatsapp, image_urls = [] } = request.body
   if (!title || !price || !category || !condition)
     return reply.code(400).send({ error: 'Campos obrigatórios: título, preço, categoria, estado do produto.' })
 
@@ -44,7 +44,8 @@ export async function createListing(request, reply) {
   const { data, error } = await supabase.from('marketplace_listings').insert({
     id: listingId, user_id: request.user.id,
     title, description, price: Number(price),
-    category, condition, city, state, status: 'active',
+    category, condition, city, state, whatsapp: whatsapp || null,
+    status: 'active',
   }).select().single()
 
   if (error) return reply.code(500).send({ error: 'Erro ao criar anúncio.' })
@@ -67,7 +68,7 @@ export async function updateListing(request, reply) {
   if (!listing) return reply.code(404).send({ error: 'Anúncio não encontrado.' })
   if (listing.user_id !== request.user.id) return reply.code(403).send({ error: 'Sem permissão.' })
 
-  const allowed = ['title','description','price','status','city','state']
+  const allowed = ['title','description','price','status','city','state','whatsapp']
   const updates = Object.fromEntries(
     Object.entries(request.body).filter(([k]) => allowed.includes(k))
   )
