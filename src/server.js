@@ -17,6 +17,7 @@ import pacientesRoutes from "./modules/pacientes/routes.js"
 import anamnesesRoutes from "./modules/anamneses/routes.js"
 import evolucoesRoutes from "./modules/evolucoes/routes.js"
 import tratamentoRoutes from "./modules/tratamento/routes.js"
+import financeiroRoutes from "./modules/financeiro/routes.js"
 import { initSocket } from "./socket/index.js"
 
 const app = Fastify({ logger: true })
@@ -72,6 +73,7 @@ await app.register(pacientesRoutes, { prefix: "/api/pacientes" })
 await app.register(anamnesesRoutes, { prefix: "/api/anamneses" })
 await app.register(evolucoesRoutes, { prefix: "/api/evolucoes" })
 await app.register(tratamentoRoutes, { prefix: "/api" })
+await app.register(financeiroRoutes, { prefix: "/api" })
 
 app.get("/health", async () => ({ status: "ok", app: "ODONT HUB", version: "1.0.0" }))
 
