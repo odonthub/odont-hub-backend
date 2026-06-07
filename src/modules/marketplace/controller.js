@@ -48,7 +48,7 @@ export async function createListing(request, reply) {
     status: 'active',
   }).select().single()
 
-  if (error) return reply.code(500).send({ error: 'Erro ao criar anúncio.' })
+  if (error) return reply.code(500).send({ error: 'Erro ao criar anúncio: ' + (error.message || error.code) })
 
   if (image_urls.length > 0) {
     await supabase.from('listing_images').insert(
