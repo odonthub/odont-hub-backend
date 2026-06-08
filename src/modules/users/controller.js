@@ -90,7 +90,7 @@ export async function getPerfilCompleto(request, reply) {
 export async function updateProfile(request, reply) {
   const allowed = [
     'name','bio','specialty','phone','city','state',
-    'cover_url','descricao_longa','instagram','site_url','whatsapp',
+    'avatar_url','cover_url','descricao_longa','instagram','site_url','whatsapp',
     'whatsapp_aberto','telefone_aberto','email_aberto','instagram_aberto','site_aberto'
   ]
   const updates = Object.fromEntries(
