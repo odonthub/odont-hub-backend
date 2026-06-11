@@ -88,7 +88,11 @@ export default async function feedRoutes(fastify) {
   fastify.post('/:id/like', {
     onRequest: [fastify.authenticate],
     handler: async (request, reply) => {
-      await supabase.from('post_likes').upsert({ post_id: request.params.id, user_id: request.user.id })
+      const { error } = await supabase.from('post_likes').upsert(
+        { post_id: request.params.id, user_id: request.user.id },
+        { onConflict: 'post_id,user_id', ignoreDuplicates: true }
+      )
+      if (error) return reply.code(500).send({ error: 'Erro ao curtir: ' + (error.message || error.code) })
       return { ok: true }
     }
   })
@@ -106,9 +110,11 @@ export default async function feedRoutes(fastify) {
   fastify.post('/:id/save', {
     onRequest: [fastify.authenticate],
     handler: async (request, reply) => {
-      const { error } = await supabase.from('post_saves')
-        .upsert({ post_id: request.params.id, user_id: request.user.id })
-      if (error) return reply.code(500).send({ error: 'Erro ao salvar: ' + error.message })
+      const { error } = await supabase.from('post_saves').upsert(
+        { post_id: request.params.id, user_id: request.user.id },
+        { onConflict: 'post_id,user_id', ignoreDuplicates: true }
+      )
+      if (error) return reply.code(500).send({ error: 'Erro ao salvar: ' + (error.message || error.code) })
       return { ok: true }
     }
   })
